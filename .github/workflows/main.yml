@@ -1,0 +1,46 @@
+name: Synchronize with AWS CodeCommit
+
+on: workflow_dispatch
+
+jobs:
+  Sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Code checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install Git-Remote-CodeCommit package
+        run: |
+          pip install git-remote-codecommit 
+
+      - name: Configure Git User Identity
+        run: |
+          git config --global user.email "${{ secrets.USER_EMAIL }}"
+          git config --global user.name  "${{ secrets.USER_NAME }}"
+
+      - name: Sync with AWS CodeCommit
+        run: |
+          git config --global credential.helper '!aws codecommit credential-helper $@'
+          git config --global credential.UseHttpPath true
+        
+          git remote add codecommit codecommit::us-east-1://wild-rides-repo
+       
+          git push codecommit main            
+
+
+
+  
+
+
+
+    
